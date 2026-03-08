@@ -4,6 +4,10 @@
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
     "version": "0.1.0",
     "publisher": "lapluis",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lapluis/vspreview-vscode"
+    },
     "engines": {
         "vscode": "^1.80.0"
     },
