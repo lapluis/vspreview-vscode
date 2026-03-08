@@ -26,15 +26,15 @@
         "configuration": {
             "title": "VapourSynth",
             "properties": {
-                "vapoursynth.directory": {
+                "vapoursynth.vspipePath": {
                     "type": "string",
                     "default": "",
-                    "description": "Path to VapourSynth installation directory (containing python.exe and vspipe.exe), e.g. C:\\tools\\vapoursynth"
+                    "description": "Full path to the `vspipe` executable (e.g. C:\\tools\\vapoursynth\\vspipe.exe)."
                 },
                 "vapoursynth.pythonPath": {
                     "type": "string",
                     "default": "",
-                    "description": "Path to Python executable. If empty, uses python.exe from the VapourSynth directory."
+                    "description": "Path to Python executable. If empty, defaults to `../python{ext}` relative to the configured `vspipe` path. You can still set this manually."
                 }
             }
         },

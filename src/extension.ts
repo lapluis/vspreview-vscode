@@ -9,8 +9,8 @@ function getConfig() {
     return vscode.workspace.getConfiguration('vapoursynth');
 }
 
-function getVapourSynthDir(): string {
-    return getConfig().get<string>('directory', '');
+function getVspipePath(): string {
+    return getConfig().get<string>('vspipePath', '');
 }
 
 function getPythonPath(): string {
@@ -18,11 +18,11 @@ function getPythonPath(): string {
     if (configured) {
         return configured;
     }
-    return path.join(getVapourSynthDir(), `python${EXE_EXT}`);
-}
-
-function getVspipePath(): string {
-    return path.join(getVapourSynthDir(), `vspipe${EXE_EXT}`);
+    const vspipe = getVspipePath();
+    if (vspipe) {
+        return path.resolve(path.dirname(vspipe), '..', `python${EXE_EXT}`);
+    }
+    return '';
 }
 
 function getActiveVpyFile(): string | undefined {
@@ -41,32 +41,39 @@ function getActiveVpyFile(): string | undefined {
     return filePath;
 }
 
-async function ensureDirectory(): Promise<boolean> {
-    const vsDir = getVapourSynthDir();
-    if (!vsDir) {
+async function ensureVspipeConfigured(): Promise<boolean> {
+    const vspipe = getVspipePath();
+    if (!vspipe) {
         const choice = await vscode.window.showErrorMessage(
-            'VapourSynth directory not configured. Please set vapoursynth.directory in Settings.',
+            'Path to `vspipe` not configured. Please set vapoursynth.vspipePath in Settings.',
             'Open Settings'
         );
         if (choice === 'Open Settings') {
-            await vscode.commands.executeCommand('workbench.action.openSettings', 'vapoursynth.directory');
+            await vscode.commands.executeCommand('workbench.action.openSettings', 'vapoursynth.vspipePath');
         }
         return false;
     }
-    if (!fs.existsSync(vsDir)) {
-        vscode.window.showErrorMessage(`VapourSynth directory does not exist: ${vsDir}`);
-        return false;
-    }
-    if (!fs.existsSync(getPythonPath())) {
-        vscode.window.showErrorMessage(`Python executable not found: ${getPythonPath()}`);
+    if (!fs.existsSync(vspipe)) {
+        vscode.window.showErrorMessage(`vspipe executable not found: ${vspipe}`);
         return false;
     }
     return true;
 }
 
-function ensureVspipe(): boolean {
-    if (!fs.existsSync(getVspipePath())) {
-        vscode.window.showErrorMessage(`vspipe executable not found: ${getVspipePath()}`);
+async function ensurePythonExists(): Promise<boolean> {
+    const py = getPythonPath();
+    if (!py) {
+        const choice = await vscode.window.showErrorMessage(
+            'Python path not configured and cannot be inferred. Set `vapoursynth.pythonPath` or `vapoursynth.vspipePath` in Settings.',
+            'Open Settings'
+        );
+        if (choice === 'Open Settings') {
+            await vscode.commands.executeCommand('workbench.action.openSettings', 'vapoursynth.pythonPath');
+        }
+        return false;
+    }
+    if (!fs.existsSync(py)) {
+        vscode.window.showErrorMessage(`Python executable not found: ${py}`);
         return false;
     }
     return true;
@@ -79,11 +86,13 @@ function getTerminal(name: string): vscode.Terminal {
         return existing;
     }
     // Set up environment so VapourSynth's Python can find its modules
-    const vsDir = getVapourSynthDir();
+    const vspipe = getVspipePath();
     const env: { [key: string]: string } = {};
 
-    if (vsDir) {
-        env['PATH'] = `${vsDir}${path.delimiter}${process.env.PATH || ''}`;
+    if (vspipe) {
+        const vspDir = path.dirname(vspipe);
+        const parent = path.resolve(vspDir, '..');
+        env['PATH'] = `${vspDir}${path.delimiter}${parent}${path.delimiter}${process.env.PATH || ''}`;
     }
 
     return vscode.window.createTerminal({
@@ -148,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('vapoursynth.preview', async () => {
             const file = getActiveVpyFile();
-            if (!file || !(await ensureDirectory())) return;
+            if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
             const terminal = getTerminal('VS Preview');
             terminal.show();
@@ -160,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('vapoursynth.execInTerminal', async () => {
             const file = getActiveVpyFile();
-            if (!file || !(await ensureDirectory())) return;
+            if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
             const terminal = getTerminal('VapourSynth');
             terminal.show();
@@ -172,8 +181,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('vapoursynth.info', async () => {
             const file = getActiveVpyFile();
-            if (!file || !(await ensureDirectory())) return;
-            if (!ensureVspipe()) return;
+            if (!file || !(await ensureVspipeConfigured())) return;
 
             const terminal = getTerminal('VS Info');
             terminal.show();
@@ -185,8 +193,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('vapoursynth.bench', async () => {
             const file = getActiveVpyFile();
-            if (!file || !(await ensureDirectory())) return;
-            if (!ensureVspipe()) return;
+            if (!file || !(await ensureVspipeConfigured())) return;
 
             const fileDir = path.dirname(file);
             const terminal = getTerminal('VS Bench');

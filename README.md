@@ -13,7 +13,7 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 ## Getting Started
 
 1. The extension requires the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for syntax highlighting and IntelliSense (will be installed automatically as a dependency)
-2. After installing, open VS Code settings and set `vapoursynth.directory` to your VapourSynth installation directory (e.g. `C:\tools\vapoursynth`)
+2. After installing, open VS Code settings and set `vapoursynth.vspipePath` to the full path of the `vspipe` executable (e.g. `C:\tools\vapoursynth\vspipe.exe`). You may also set `vapoursynth.pythonPath` to a specific Python executable.
 3. Open a `.vpy` file and use the keybindings to start working
 
 ## Keybindings
@@ -33,21 +33,19 @@ Configure in VS Code settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `vapoursynth.directory` | `""` | Path to VapourSynth installation directory (containing `python.exe` and `vspipe.exe`) |
-| `vapoursynth.pythonPath` | `""` | Path to Python executable. If empty, uses `python.exe` from the VapourSynth directory |
+| `vapoursynth.vspipePath` | `""` | Full path to the `vspipe` executable (for example `C:\\tools\\vapoursynth\\vspipe.exe`). This is required for vspipe-based commands. |
+| `vapoursynth.pythonPath` | `""` | Path to Python executable. If empty, the extension will try to infer the Python executable from the configured `vspipe` path using `../python{ext}` relative to `vspipe`. You can still set this manually. |
 
 Example:
 
 ```json
 {
-    "vapoursynth.directory": "C:\\tools\\vapoursynth",
+    "vapoursynth.vspipePath": "C:\\tools\\vapoursynth\\vspipe.exe",
     "vapoursynth.pythonPath": ""
 }
 ```
 
-The directory should contain:
-- `python.exe` — Python interpreter bundled with VapourSynth
-- `vspipe.exe` — VapourSynth pipe tool
+If you prefer not to set `pythonPath`, the extension will attempt to use the interpreter located at `../python{ext}` relative to the `vspipe` binary (this matches common VapourSynth layouts). If that inference fails, set `vapoursynth.pythonPath` explicitly.
 
 ## Directory Structure Reference
 
