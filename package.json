@@ -1,0 +1,92 @@
+{
+    "name": "vapoursynth-preview",
+    "displayName": "VapourSynth Preview",
+    "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
+    "version": "0.1.0",
+    "publisher": "lapluis",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Other"
+    ],
+    "activationEvents": [
+        "workspaceContains:**/*.vpy"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "VapourSynth",
+            "properties": {
+                "vapoursynth.directory": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to VapourSynth installation directory (containing python.exe and vspipe.exe), e.g. C:\\tools\\vapoursynth"
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "vapoursynth.preview",
+                "title": "VapourSynth: Preview (vspreview)"
+            },
+            {
+                "command": "vapoursynth.info",
+                "title": "VapourSynth: Script Info (vspipe -i)"
+            },
+            {
+                "command": "vapoursynth.bench",
+                "title": "VapourSynth: Benchmark (vspipe -p)"
+            },
+            {
+                "command": "vapoursynth.execInTerminal",
+                "title": "VapourSynth: Execute Script in Terminal"
+            },
+            {
+                "command": "vapoursynth.selectDirectory",
+                "title": "VapourSynth: Select VapourSynth Directory"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "vapoursynth.preview",
+                "key": "ctrl+f5",
+                "when": "editorTextFocus && resourceExtname == .vpy"
+            },
+            {
+                "command": "vapoursynth.execInTerminal",
+                "key": "ctrl+f6",
+                "when": "editorTextFocus && resourceExtname == .vpy"
+            },
+            {
+                "command": "vapoursynth.info",
+                "key": "ctrl+f7",
+                "when": "editorTextFocus && resourceExtname == .vpy"
+            },
+            {
+                "command": "vapoursynth.bench",
+                "key": "ctrl+f8",
+                "when": "editorTextFocus && resourceExtname == .vpy"
+            }
+        ],
+        "languages": [
+            {
+                "id": "python",
+                "extensions": [
+                    ".vpy"
+                ]
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.80.0",
+        "@types/node": "^18.0.0",
+        "typescript": "^5.0.0"
+    }
+}

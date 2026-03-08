@@ -1,0 +1,216 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+
+function getConfig() {
+    return vscode.workspace.getConfiguration('vapoursynth');
+}
+
+function getVapourSynthDir(): string {
+    return getConfig().get<string>('directory', '');
+}
+
+function getPythonPath(): string {
+    return path.join(getVapourSynthDir(), 'python.exe');
+}
+
+function getVspipePath(): string {
+    return path.join(getVapourSynthDir(), 'vspipe.exe');
+}
+
+function getActiveVpyFile(): string | undefined {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor');
+        return undefined;
+    }
+    const filePath = editor.document.fileName;
+    if (!filePath.toLowerCase().endsWith('.vpy')) {
+        vscode.window.showErrorMessage('Current file is not a .vpy file');
+        return undefined;
+    }
+    // Save the file before running
+    editor.document.save();
+    return filePath;
+}
+
+async function ensureDirectory(): Promise<boolean> {
+    const vsDir = getVapourSynthDir();
+    if (!vsDir) {
+        const choice = await vscode.window.showErrorMessage(
+            'VapourSynth directory not configured. Please set vapoursynth.directory first.',
+            'Select Directory'
+        );
+        if (choice === 'Select Directory') {
+            await vscode.commands.executeCommand('vapoursynth.selectDirectory');
+        }
+        return false;
+    }
+    if (!fs.existsSync(vsDir)) {
+        vscode.window.showErrorMessage(`VapourSynth directory does not exist: ${vsDir}`);
+        return false;
+    }
+    if (!fs.existsSync(getPythonPath())) {
+        vscode.window.showErrorMessage(`python.exe not found: ${getPythonPath()}`);
+        return false;
+    }
+    return true;
+}
+
+function ensureVspipe(): boolean {
+    if (!fs.existsSync(getVspipePath())) {
+        vscode.window.showErrorMessage(`vspipe.exe not found: ${getVspipePath()}`);
+        return false;
+    }
+    return true;
+}
+
+function getTerminal(name: string): vscode.Terminal {
+    // Reuse existing terminal with the same name
+    const existing = vscode.window.terminals.find(t => t.name === name);
+    if (existing) {
+        return existing;
+    }
+    // Set up environment so VapourSynth's Python can find its modules
+    const vsDir = getVapourSynthDir();
+    return vscode.window.createTerminal({
+        name,
+        env: {
+            PATH: `${vsDir};${process.env.PATH}`
+        }
+    });
+}
+
+/**
+ * Escape a path for PowerShell by wrapping in single quotes
+ * and escaping any internal single quotes.
+ */
+function psQuote(s: string): string {
+    return `'${s.replace(/'/g, "''")}'`;
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    console.log('VapourSynth Preview extension activated');
+
+    // Command: Select VapourSynth Directory
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vapoursynth.selectDirectory', async () => {
+            const result = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: 'Select VapourSynth Directory',
+                title: 'Select VapourSynth directory containing python.exe and vspipe.exe'
+            });
+            if (result && result.length > 0) {
+                const selectedDir = result[0].fsPath;
+                // Validate the selection
+                const pythonExists = fs.existsSync(path.join(selectedDir, 'python.exe'));
+                const vspipeExists = fs.existsSync(path.join(selectedDir, 'vspipe.exe'));
+                if (!pythonExists) {
+                    const proceed = await vscode.window.showWarningMessage(
+                        `python.exe not found in selected directory: ${selectedDir}`,
+                        'Use Anyway', 'Cancel'
+                    );
+                    if (proceed !== 'Use Anyway') {
+                        return;
+                    }
+                }
+                if (!vspipeExists) {
+                    vscode.window.showWarningMessage(
+                        `vspipe.exe not found in selected directory: ${selectedDir}`
+                    );
+                }
+                await getConfig().update('directory', selectedDir, vscode.ConfigurationTarget.Global);
+                vscode.window.showInformationMessage(`VapourSynth directory set to: ${selectedDir}`);
+            }
+        })
+    );
+
+    // Command: vspreview (Ctrl+F5)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vapoursynth.preview', async () => {
+            const file = getActiveVpyFile();
+            if (!file || !(await ensureDirectory())) return;
+
+            const terminal = getTerminal('VS Preview');
+            terminal.show();
+            terminal.sendText(`& ${psQuote(getPythonPath())} -m vspreview ${psQuote(file)}`);
+        })
+    );
+
+    // Command: Execute in Terminal (Ctrl+F6)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vapoursynth.execInTerminal', async () => {
+            const file = getActiveVpyFile();
+            if (!file || !(await ensureDirectory())) return;
+
+            const terminal = getTerminal('VapourSynth');
+            terminal.show();
+            terminal.sendText(`& ${psQuote(getPythonPath())} ${psQuote(file)}`);
+        })
+    );
+
+    // Command: vspipe info (Ctrl+F7)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vapoursynth.info', async () => {
+            const file = getActiveVpyFile();
+            if (!file || !(await ensureDirectory())) return;
+            if (!ensureVspipe()) return;
+
+            const terminal = getTerminal('VS Info');
+            terminal.show();
+            terminal.sendText(`& ${psQuote(getVspipePath())} -i ${psQuote(file)}`);
+        })
+    );
+
+    // Command: vspipe benchmark (Ctrl+F8)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('vapoursynth.bench', async () => {
+            const file = getActiveVpyFile();
+            if (!file || !(await ensureDirectory())) return;
+            if (!ensureVspipe()) return;
+
+            const fileDir = path.dirname(file);
+            const terminal = getTerminal('VS Bench');
+            terminal.show();
+            terminal.sendText(`Push-Location ${psQuote(fileDir)}; & ${psQuote(getVspipePath())} -p ${psQuote(file)} .; Pop-Location`);
+        })
+    );
+
+    // Status bar item showing the configured VapourSynth directory
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.command = 'vapoursynth.selectDirectory';
+    context.subscriptions.push(statusBarItem);
+
+    function updateStatusBar() {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
+            const vsDir = getVapourSynthDir();
+            if (vsDir) {
+                statusBarItem.text = `$(file-media) VS: ${path.basename(vsDir)}`;
+                statusBarItem.tooltip = `VapourSynth: ${vsDir}\nClick to change directory`;
+            } else {
+                statusBarItem.text = '$(warning) VS: Not Configured';
+                statusBarItem.tooltip = 'Click to select VapourSynth directory';
+            }
+            statusBarItem.show();
+        } else {
+            statusBarItem.hide();
+        }
+    }
+
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(updateStatusBar)
+    );
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('vapoursynth.directory')) {
+                updateStatusBar();
+            }
+        })
+    );
+    updateStatusBar();
+}
+
+export function deactivate() { }
