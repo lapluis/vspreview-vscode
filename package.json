@@ -2,7 +2,7 @@
     "name": "vapoursynth-preview",
     "displayName": "VapourSynth Preview",
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "lapluis",
     "repository": {
         "type": "git",
@@ -33,19 +33,22 @@
         "commands": [
             {
                 "command": "vapoursynth.preview",
-                "title": "VapourSynth: Preview (vspreview)"
+                "title": "Preview (vspreview)",
+                "icon": "$(preview)"
             },
             {
                 "command": "vapoursynth.info",
-                "title": "VapourSynth: Script Info (vspipe -i)"
+                "title": "Script Info (vspipe -i)",
+                "icon": "$(info)"
             },
             {
                 "command": "vapoursynth.bench",
-                "title": "VapourSynth: Benchmark (vspipe -p)"
+                "title": "Benchmark (vspipe -p)",
+                "icon": "$(run-all)"
             },
             {
                 "command": "vapoursynth.execInTerminal",
-                "title": "VapourSynth: Execute Script in Terminal"
+                "title": "Execute Script in Terminal"
             },
             {
                 "command": "vapoursynth.selectDirectory",
@@ -74,6 +77,25 @@
                 "when": "editorTextFocus && resourceExtname == .vpy"
             }
         ],
+        "menus": {
+            "editor/title": [
+                {
+                    "command": "vapoursynth.preview",
+                    "when": "resourceExtname == .vpy",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "vapoursynth.info",
+                    "when": "resourceExtname == .vpy",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "vapoursynth.bench",
+                    "when": "resourceExtname == .vpy",
+                    "group": "navigation@3"
+                }
+            ]
+        },
         "languages": [
             {
                 "id": "python",
