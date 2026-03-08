@@ -2,7 +2,7 @@
     "name": "vapoursynth-preview",
     "displayName": "VapourSynth Preview",
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "publisher": "lapluis",
     "repository": {
         "type": "git",
@@ -34,7 +34,7 @@
                 "vapoursynth.pythonPath": {
                     "type": "string",
                     "default": "",
-                    "description": "Path to Python executable. If empty, defaults to `../python{ext}` relative to the configured `vspipe` path. You can still set this manually."
+                    "description": "Path to Python executable. If empty, defaults to `python` from the `vspipe` path. You can still set this manually."
                 }
             }
         },

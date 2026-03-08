@@ -34,7 +34,7 @@ Configure in VS Code settings:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `vapoursynth.vspipePath` | `""` | Full path to the `vspipe` executable (for example `C:\\tools\\vapoursynth\\vspipe.exe`). This is required for vspipe-based commands. |
-| `vapoursynth.pythonPath` | `""` | Path to Python executable. If empty, the extension will try to infer the Python executable from the configured `vspipe` path using `../python{ext}` relative to `vspipe`. You can still set this manually. |
+| `vapoursynth.pythonPath` | `""` | Path to Python executable. If empty, defaults to `python` from the `vspipe` path. You can still set this manually. |
 
 Example:
 
@@ -47,7 +47,7 @@ Example:
 
 If `vapoursynth.vspipePath` is not configured, the extension will search your system `PATH` for a `vspipe` executable and use the first match found. If neither a configured path nor a PATH entry is available, set `vapoursynth.vspipePath` manually.
 
-Additionally, if you prefer not to set `pythonPath`, the extension will attempt to use the interpreter located at `../python{ext}` relative to the `vspipe` binary (this matches common VapourSynth layouts). If that inference fails, set `vapoursynth.pythonPath` explicitly.
+Additionally, if you prefer not to set `pythonPath`, the extension will attempt to use the interpreter from the `vspipe` path. If that inference fails, set `vapoursynth.pythonPath` explicitly.
 
 ## Directory Structure Reference
 
