@@ -2,7 +2,7 @@
     "name": "vapoursynth-preview",
     "displayName": "VapourSynth Preview",
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "lapluis",
     "repository": {
         "type": "git",
@@ -27,6 +27,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Path to VapourSynth installation directory (containing python.exe and vspipe.exe), e.g. C:\\tools\\vapoursynth"
+                },
+                "vapoursynth.pythonPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to Python executable. If empty, uses python.exe from the VapourSynth directory."
                 }
             }
         },
@@ -49,10 +54,6 @@
             {
                 "command": "vapoursynth.execInTerminal",
                 "title": "Execute Script in Terminal"
-            },
-            {
-                "command": "vapoursynth.selectDirectory",
-                "title": "VapourSynth: Select VapourSynth Directory"
             }
         ],
         "keybindings": [

@@ -11,6 +11,10 @@ function getVapourSynthDir(): string {
 }
 
 function getPythonPath(): string {
+    const configured = getConfig().get<string>('pythonPath', '');
+    if (configured) {
+        return configured;
+    }
     return path.join(getVapourSynthDir(), 'python.exe');
 }
 
@@ -38,11 +42,11 @@ async function ensureDirectory(): Promise<boolean> {
     const vsDir = getVapourSynthDir();
     if (!vsDir) {
         const choice = await vscode.window.showErrorMessage(
-            'VapourSynth directory not configured. Please set vapoursynth.directory first.',
-            'Select Directory'
+            'VapourSynth directory not configured. Please set vapoursynth.directory in Settings.',
+            'Open Settings'
         );
-        if (choice === 'Select Directory') {
-            await vscode.commands.executeCommand('vapoursynth.selectDirectory');
+        if (choice === 'Open Settings') {
+            await vscode.commands.executeCommand('workbench.action.openSettings', 'vapoursynth.directory');
         }
         return false;
     }
@@ -91,41 +95,6 @@ function psQuote(s: string): string {
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('VapourSynth Preview extension activated');
-
-    // Command: Select VapourSynth Directory
-    context.subscriptions.push(
-        vscode.commands.registerCommand('vapoursynth.selectDirectory', async () => {
-            const result = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                openLabel: 'Select VapourSynth Directory',
-                title: 'Select VapourSynth directory containing python.exe and vspipe.exe'
-            });
-            if (result && result.length > 0) {
-                const selectedDir = result[0].fsPath;
-                // Validate the selection
-                const pythonExists = fs.existsSync(path.join(selectedDir, 'python.exe'));
-                const vspipeExists = fs.existsSync(path.join(selectedDir, 'vspipe.exe'));
-                if (!pythonExists) {
-                    const proceed = await vscode.window.showWarningMessage(
-                        `python.exe not found in selected directory: ${selectedDir}`,
-                        'Use Anyway', 'Cancel'
-                    );
-                    if (proceed !== 'Use Anyway') {
-                        return;
-                    }
-                }
-                if (!vspipeExists) {
-                    vscode.window.showWarningMessage(
-                        `vspipe.exe not found in selected directory: ${selectedDir}`
-                    );
-                }
-                await getConfig().update('directory', selectedDir, vscode.ConfigurationTarget.Global);
-                vscode.window.showInformationMessage(`VapourSynth directory set to: ${selectedDir}`);
-            }
-        })
-    );
 
     // Command: vspreview (Ctrl+F5)
     context.subscriptions.push(
@@ -180,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Status bar item showing the configured VapourSynth directory
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = 'vapoursynth.selectDirectory';
+    statusBarItem.command = { command: 'workbench.action.openSettings', arguments: ['vapoursynth.directory'], title: 'Open VapourSynth Settings' };
     context.subscriptions.push(statusBarItem);
 
     function updateStatusBar() {
@@ -189,10 +158,10 @@ export function activate(context: vscode.ExtensionContext) {
             const vsDir = getVapourSynthDir();
             if (vsDir) {
                 statusBarItem.text = `$(file-media) VS: ${path.basename(vsDir)}`;
-                statusBarItem.tooltip = `VapourSynth: ${vsDir}\nClick to change directory`;
+                statusBarItem.tooltip = `VapourSynth: ${vsDir}\nClick to open settings`;
             } else {
                 statusBarItem.text = '$(warning) VS: Not Configured';
-                statusBarItem.tooltip = 'Click to select VapourSynth directory';
+                statusBarItem.tooltip = 'Click to open VapourSynth settings';
             }
             statusBarItem.show();
         } else {
