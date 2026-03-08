@@ -20,7 +20,8 @@ function getPythonPath(): string {
     }
     const vspipe = getVspipePath();
     if (vspipe) {
-        return path.resolve(path.dirname(vspipe), '..', `python${EXE_EXT}`);
+        console.log(`Inferring Python path from vspipe location: ${vspipe}`);
+        return path.resolve(path.dirname(vspipe), `python${EXE_EXT}`);
     }
     return '';
 }
@@ -91,8 +92,7 @@ function getTerminal(name: string): vscode.Terminal {
 
     if (vspipe) {
         const vspDir = path.dirname(vspipe);
-        const parent = path.resolve(vspDir, '..');
-        env['PATH'] = `${vspDir}${path.delimiter}${parent}${path.delimiter}${process.env.PATH || ''}`;
+        env['PATH'] = `${vspDir}${path.delimiter}${process.env.PATH || ''}`;
     }
 
     return vscode.window.createTerminal({
