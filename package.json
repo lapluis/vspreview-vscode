@@ -2,7 +2,7 @@
     "name": "vapoursynth-preview",
     "displayName": "VapourSynth Preview",
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "publisher": "lapluis",
     "repository": {
         "type": "git",
@@ -42,6 +42,11 @@
                 "icon": "$(preview)"
             },
             {
+                "command": "vapoursynth.execInTerminal",
+                "title": "Execute Script in Terminal",
+                "icon": "$(terminal)"
+            },
+            {
                 "command": "vapoursynth.info",
                 "title": "Script Info (vspipe -i)",
                 "icon": "$(info)"
@@ -50,10 +55,6 @@
                 "command": "vapoursynth.bench",
                 "title": "Benchmark (vspipe -p)",
                 "icon": "$(run-all)"
-            },
-            {
-                "command": "vapoursynth.execInTerminal",
-                "title": "Execute Script in Terminal"
             }
         ],
         "keybindings": [
@@ -86,14 +87,19 @@
                     "group": "navigation@1"
                 },
                 {
-                    "command": "vapoursynth.info",
+                    "command": "vapoursynth.execInTerminal",
                     "when": "resourceExtname == .vpy",
                     "group": "navigation@2"
                 },
                 {
-                    "command": "vapoursynth.bench",
+                    "command": "vapoursynth.info",
                     "when": "resourceExtname == .vpy",
                     "group": "navigation@3"
+                },
+                {
+                    "command": "vapoursynth.bench",
+                    "when": "resourceExtname == .vpy",
+                    "group": "navigation@4"
                 }
             ]
         },
