@@ -143,7 +143,7 @@ export function activate(context: vscode.ExtensionContext) {
             const fileDir = path.dirname(file);
             const terminal = getTerminal('VS Bench');
             terminal.show();
-            terminal.sendText(`Push-Location ${psQuote(fileDir)}; & ${psQuote(getVspipePath())} -p ${psQuote(file)} .; Pop-Location`);
+            terminal.sendText(`Push-Location -LiteralPath ${psQuote(fileDir)}; & ${psQuote(getVspipePath())} -p ${psQuote(file)} .; Pop-Location`);
         })
     );
 
