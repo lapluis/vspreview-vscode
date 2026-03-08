@@ -2,7 +2,7 @@
     "name": "vapoursynth-preview",
     "displayName": "VapourSynth Preview",
     "description": "Recognize and preview VapourSynth (.vpy) scripts with vspreview, vspipe info and benchmark support",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "publisher": "lapluis",
     "repository": {
         "type": "git",
@@ -14,6 +14,9 @@
     "categories": [
         "Programming Languages",
         "Other"
+    ],
+    "extensionDependencies": [
+        "ms-python.python"
     ],
     "activationEvents": [
         "workspaceContains:**/*.vpy"
@@ -118,8 +121,8 @@
         "watch": "tsc -watch -p ./"
     },
     "devDependencies": {
-        "@types/vscode": "^1.80.0",
         "@types/node": "^18.0.0",
+        "@types/vscode": "^1.80.0",
         "typescript": "^5.0.0"
     }
 }

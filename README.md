@@ -5,7 +5,6 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 ## Features
 
 - **File Recognition**: Automatically associates `.vpy` files with Python language for syntax highlighting and IntelliSense
-- **Python Interpreter Sync**: Automatically sets the Python extension's interpreter to VapourSynth's Python when editing `.vpy` files
 - **vspreview**: Preview VapourSynth script output with vspreview (`Ctrl+F5`)
 - **Execute Script**: Run `.vpy` scripts directly in the terminal (`Ctrl+F6`)
 - **Script Info**: View script output info with vspipe -i (`Ctrl+F7`)
@@ -13,8 +12,9 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 
 ## Getting Started
 
-1. After installing, open VS Code settings and set `vapoursynth.directory` to your VapourSynth installation directory (e.g. `C:\tools\vapoursynth`)
-2. Open a `.vpy` file and use the keybindings to start working
+1. The extension requires the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) for syntax highlighting and IntelliSense (will be installed automatically as a dependency)
+2. After installing, open VS Code settings and set `vapoursynth.directory` to your VapourSynth installation directory (e.g. `C:\tools\vapoursynth`)
+3. Open a `.vpy` file and use the keybindings to start working
 
 ## Keybindings
 
@@ -48,8 +48,6 @@ Example:
 The directory should contain:
 - `python.exe` — Python interpreter bundled with VapourSynth
 - `vspipe.exe` — VapourSynth pipe tool
-
-When a `.vpy` file is opened, the extension automatically sets `python.defaultInterpreterPath` (workspace scope) so that the Python extension uses VapourSynth's Python for IntelliSense and linting.
 
 ## Directory Structure Reference
 

@@ -147,40 +147,6 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Set Python extension interpreter for .vpy files
-    async function syncPythonInterpreter() {
-        const pythonPath = getPythonPath();
-        if (pythonPath && fs.existsSync(pythonPath)) {
-            const pythonConfig = vscode.workspace.getConfiguration('python');
-            const current = pythonConfig.get<string>('defaultInterpreterPath', '');
-            if (current !== pythonPath) {
-                await pythonConfig.update('defaultInterpreterPath', pythonPath, vscode.ConfigurationTarget.Workspace);
-            }
-        }
-    }
-
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
-                syncPythonInterpreter();
-            }
-        })
-    );
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('vapoursynth.directory') || e.affectsConfiguration('vapoursynth.pythonPath')) {
-                const editor = vscode.window.activeTextEditor;
-                if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
-                    syncPythonInterpreter();
-                }
-            }
-        })
-    );
-    // Sync interpreter on activation if a .vpy file is already open
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
-        syncPythonInterpreter();
-    }
 }
 
 export function deactivate() { }
