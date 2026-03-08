@@ -147,39 +147,40 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Status bar item showing the configured VapourSynth directory
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = { command: 'workbench.action.openSettings', arguments: ['vapoursynth.directory'], title: 'Open VapourSynth Settings' };
-    context.subscriptions.push(statusBarItem);
-
-    function updateStatusBar() {
-        const editor = vscode.window.activeTextEditor;
-        if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
-            const vsDir = getVapourSynthDir();
-            if (vsDir) {
-                statusBarItem.text = `$(file-media) VS: ${path.basename(vsDir)}`;
-                statusBarItem.tooltip = `VapourSynth: ${vsDir}\nClick to open settings`;
-            } else {
-                statusBarItem.text = '$(warning) VS: Not Configured';
-                statusBarItem.tooltip = 'Click to open VapourSynth settings';
+    // Set Python extension interpreter for .vpy files
+    async function syncPythonInterpreter() {
+        const pythonPath = getPythonPath();
+        if (pythonPath && fs.existsSync(pythonPath)) {
+            const pythonConfig = vscode.workspace.getConfiguration('python');
+            const current = pythonConfig.get<string>('defaultInterpreterPath', '');
+            if (current !== pythonPath) {
+                await pythonConfig.update('defaultInterpreterPath', pythonPath, vscode.ConfigurationTarget.Workspace);
             }
-            statusBarItem.show();
-        } else {
-            statusBarItem.hide();
         }
     }
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(updateStatusBar)
-    );
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('vapoursynth.directory')) {
-                updateStatusBar();
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
+                syncPythonInterpreter();
             }
         })
     );
-    updateStatusBar();
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('vapoursynth.directory') || e.affectsConfiguration('vapoursynth.pythonPath')) {
+                const editor = vscode.window.activeTextEditor;
+                if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
+                    syncPythonInterpreter();
+                }
+            }
+        })
+    );
+    // Sync interpreter on activation if a .vpy file is already open
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.fileName.toLowerCase().endsWith('.vpy')) {
+        syncPythonInterpreter();
+    }
 }
 
 export function deactivate() { }

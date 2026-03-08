@@ -5,19 +5,17 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 ## Features
 
 - **File Recognition**: Automatically associates `.vpy` files with Python language for syntax highlighting and IntelliSense
+- **Python Interpreter Sync**: Automatically sets the Python extension's interpreter to VapourSynth's Python when editing `.vpy` files
 - **vspreview**: Preview VapourSynth script output with vspreview (`Ctrl+F5`)
 - **Execute Script**: Run `.vpy` scripts directly in the terminal (`Ctrl+F6`)
 - **Script Info**: View script output info with vspipe -i (`Ctrl+F7`)
 - **Benchmark**: Run performance benchmarks with vspipe -p (`Ctrl+F8`)
-- **Directory Selection**: Quickly select/switch VapourSynth directory via Command Palette or status bar
 - **Status Bar**: Shows current VapourSynth configuration when editing `.vpy` files
 
 ## Getting Started
 
-1. After installing, press `Ctrl+Shift+P` to open the Command Palette
-2. Type `VapourSynth: Select VapourSynth Directory`
-3. Select your VapourSynth installation directory (e.g. `C:\tools\vapoursynth`)
-4. Open a `.vpy` file and use the keybindings to start working
+1. After installing, open VS Code settings and set `vapoursynth.directory` to your VapourSynth installation directory (e.g. `C:\tools\vapoursynth`)
+2. Open a `.vpy` file and use the keybindings to start working
 
 ## Keybindings
 
@@ -34,15 +32,25 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 
 Configure in VS Code settings:
 
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `vapoursynth.directory` | `""` | Path to VapourSynth installation directory (containing `python.exe` and `vspipe.exe`) |
+| `vapoursynth.pythonPath` | `""` | Path to Python executable. If empty, uses `python.exe` from the VapourSynth directory |
+
+Example:
+
 ```json
 {
-    "vapoursynth.directory": "C:\\tools\\vapoursynth"
+    "vapoursynth.directory": "C:\\tools\\vapoursynth",
+    "vapoursynth.pythonPath": ""
 }
 ```
 
 The directory should contain:
 - `python.exe` — Python interpreter bundled with VapourSynth
 - `vspipe.exe` — VapourSynth pipe tool
+
+When a `.vpy` file is opened, the extension automatically sets `python.defaultInterpreterPath` (workspace scope) to the configured Python path so that the Python extension uses the correct interpreter for IntelliSense and linting.
 
 ## Directory Structure Reference
 
