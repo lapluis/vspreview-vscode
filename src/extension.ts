@@ -5,6 +5,8 @@ import * as fs from 'fs';
 const isWindows = process.platform === 'win32';
 const EXE_EXT = isWindows ? '.exe' : '';
 
+const TERMINAL_NAME = 'VapourSynthPreview';
+
 function getConfig() {
     return vscode.workspace.getConfiguration('vapoursynth');
 }
@@ -171,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
-            const terminal = getTerminal('VS Preview');
+            const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
             terminal.sendText(buildCommand(getPythonPath(), ['-m', 'vspreview', file]));
         })
@@ -183,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
-            const terminal = getTerminal('VapourSynth');
+            const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
             terminal.sendText(buildCommand(getPythonPath(), [file]));
         })
@@ -195,7 +197,7 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured())) return;
 
-            const terminal = getTerminal('VS Info');
+            const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
             terminal.sendText(buildCommand(getVspipePath(), ['-i', file]));
         })
@@ -208,7 +210,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (!file || !(await ensureVspipeConfigured())) return;
 
             const fileDir = path.dirname(file);
-            const terminal = getTerminal('VS Bench');
+            const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
             terminal.sendText(buildCommand(getVspipePath(), ['-p', file, '.'], fileDir));
         })
