@@ -152,7 +152,8 @@ function buildCommand(exe: string, args: string[], runDir?: string): string {
     } else if (shellType === 'cmd') {
         cmd = `${quotedExe} ${quotedArgs}`;
         if (runDir) {
-            cmd = `cd /d ${quoteString(runDir, shellType)} && ${cmd}`;
+            // Use pushd/popd so cmd returns to the original directory afterwards
+            cmd = `pushd ${quoteString(runDir, shellType)} && ${cmd} && popd`;
         }
     } else {
         cmd = `${quotedExe} ${quotedArgs}`;
