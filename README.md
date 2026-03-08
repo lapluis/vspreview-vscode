@@ -10,7 +10,6 @@ A VS Code extension for recognizing and previewing VapourSynth scripts (`.vpy` f
 - **Execute Script**: Run `.vpy` scripts directly in the terminal (`Ctrl+F6`)
 - **Script Info**: View script output info with vspipe -i (`Ctrl+F7`)
 - **Benchmark**: Run performance benchmarks with vspipe -p (`Ctrl+F8`)
-- **Status Bar**: Shows current VapourSynth configuration when editing `.vpy` files
 
 ## Getting Started
 
@@ -50,7 +49,7 @@ The directory should contain:
 - `python.exe` — Python interpreter bundled with VapourSynth
 - `vspipe.exe` — VapourSynth pipe tool
 
-When a `.vpy` file is opened, the extension automatically sets `python.defaultInterpreterPath` (workspace scope) to the configured Python path so that the Python extension uses the correct interpreter for IntelliSense and linting.
+When a `.vpy` file is opened, the extension automatically sets `python.defaultInterpreterPath` (workspace scope) so that the Python extension uses VapourSynth's Python for IntelliSense and linting.
 
 ## Directory Structure Reference
 
