@@ -45,7 +45,9 @@ Example:
 }
 ```
 
-If you prefer not to set `pythonPath`, the extension will attempt to use the interpreter located at `../python{ext}` relative to the `vspipe` binary (this matches common VapourSynth layouts). If that inference fails, set `vapoursynth.pythonPath` explicitly.
+If `vapoursynth.vspipePath` is not configured, the extension will search your system `PATH` for a `vspipe` executable and use the first match found. If neither a configured path nor a PATH entry is available, set `vapoursynth.vspipePath` manually.
+
+Additionally, if you prefer not to set `pythonPath`, the extension will attempt to use the interpreter located at `../python{ext}` relative to the `vspipe` binary (this matches common VapourSynth layouts). If that inference fails, set `vapoursynth.pythonPath` explicitly.
 
 ## Directory Structure Reference
 

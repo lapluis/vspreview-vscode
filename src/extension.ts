@@ -10,7 +10,20 @@ function getConfig() {
 }
 
 function getVspipePath(): string {
-    return getConfig().get<string>('vspipePath', '');
+    const configured = getConfig().get<string>('vspipePath', '');
+    if (configured) return configured;
+
+    // Search in PATH for vspipe if not configured
+    const exeName = `vspipe${EXE_EXT}`;
+    const paths = (process.env.PATH || '').split(path.delimiter);
+    for (const p of paths) {
+        try {
+            const candidate = path.join(p, exeName);
+            if (fs.existsSync(candidate)) return candidate;
+        } catch (e) { }
+    }
+
+    return '';
 }
 
 function getPythonPath(): string {
@@ -20,7 +33,6 @@ function getPythonPath(): string {
     }
     const vspipe = getVspipePath();
     if (vspipe) {
-        console.log(`Inferring Python path from vspipe location: ${vspipe}`);
         return path.resolve(path.dirname(vspipe), `python${EXE_EXT}`);
     }
     return '';
@@ -46,7 +58,7 @@ async function ensureVspipeConfigured(): Promise<boolean> {
     const vspipe = getVspipePath();
     if (!vspipe) {
         const choice = await vscode.window.showErrorMessage(
-            'Path to `vspipe` not configured. Please set vapoursynth.vspipePath in Settings.',
+            'Path to `vspipe` not configured and not found in PATH. Please set vapoursynth.vspipePath in Settings.',
             'Open Settings'
         );
         if (choice === 'Open Settings') {

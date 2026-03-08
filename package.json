@@ -29,7 +29,7 @@
                 "vapoursynth.vspipePath": {
                     "type": "string",
                     "default": "",
-                    "description": "Full path to the `vspipe` executable (e.g. C:\\tools\\vapoursynth\\vspipe.exe)."
+                    "description": "Full path to the `vspipe` executable (e.g. C:\\tools\\vapoursynth\\vspipe.exe). If empty, the extension will search the system PATH for `vspipe`."
                 },
                 "vapoursynth.pythonPath": {
                     "type": "string",
