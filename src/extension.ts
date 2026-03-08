@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+const isWindows = process.platform === 'win32';
+const EXE_EXT = isWindows ? '.exe' : '';
+
 function getConfig() {
     return vscode.workspace.getConfiguration('vapoursynth');
 }
@@ -15,11 +18,11 @@ function getPythonPath(): string {
     if (configured) {
         return configured;
     }
-    return path.join(getVapourSynthDir(), 'python.exe');
+    return path.join(getVapourSynthDir(), `python${EXE_EXT}`);
 }
 
 function getVspipePath(): string {
-    return path.join(getVapourSynthDir(), 'vspipe.exe');
+    return path.join(getVapourSynthDir(), `vspipe${EXE_EXT}`);
 }
 
 function getActiveVpyFile(): string | undefined {
@@ -55,7 +58,7 @@ async function ensureDirectory(): Promise<boolean> {
         return false;
     }
     if (!fs.existsSync(getPythonPath())) {
-        vscode.window.showErrorMessage(`python.exe not found: ${getPythonPath()}`);
+        vscode.window.showErrorMessage(`Python executable not found: ${getPythonPath()}`);
         return false;
     }
     return true;
@@ -63,7 +66,7 @@ async function ensureDirectory(): Promise<boolean> {
 
 function ensureVspipe(): boolean {
     if (!fs.existsSync(getVspipePath())) {
-        vscode.window.showErrorMessage(`vspipe.exe not found: ${getVspipePath()}`);
+        vscode.window.showErrorMessage(`vspipe executable not found: ${getVspipePath()}`);
         return false;
     }
     return true;
@@ -77,20 +80,65 @@ function getTerminal(name: string): vscode.Terminal {
     }
     // Set up environment so VapourSynth's Python can find its modules
     const vsDir = getVapourSynthDir();
+    const env: { [key: string]: string } = {};
+
+    if (vsDir) {
+        env['PATH'] = `${vsDir}${path.delimiter}${process.env.PATH || ''}`;
+    }
+
     return vscode.window.createTerminal({
         name,
-        env: {
-            PATH: `${vsDir};${process.env.PATH}`
-        }
+        env
     });
 }
 
+type ShellType = 'pwsh' | 'cmd' | 'unix';
+
+function getShellType(): ShellType {
+    if (!isWindows) return 'unix';
+    const shell = (vscode.env.shell || '').toLowerCase();
+    if (shell.includes('cmd.exe')) return 'cmd';
+    return 'pwsh';
+}
+
+function quoteString(s: string, shellType: ShellType): string {
+    if (shellType === 'pwsh') {
+        return `'${s.replace(/'/g, "''")}'`;
+    } else if (shellType === 'cmd') {
+        return `"${s}"`;
+    } else {
+        return `"${s.replace(/"/g, '\\"')}"`;
+    }
+}
+
 /**
- * Escape a path for PowerShell by wrapping in single quotes
- * and escaping any internal single quotes.
+ * Build a command string that correctly quotes the executable and arguments for the current shell.
+ * If runDir is provided, the command will change to that directory before executing and then return.
  */
-function psQuote(s: string): string {
-    return `'${s.replace(/'/g, "''")}'`;
+function buildCommand(exe: string, args: string[], runDir?: string): string {
+    const shellType = getShellType();
+    const quotedExe = quoteString(exe, shellType);
+    const quotedArgs = args.map(arg => quoteString(arg, shellType)).join(' ');
+
+    let cmd = '';
+    if (shellType === 'pwsh') {
+        cmd = `& ${quotedExe} ${quotedArgs}`;
+        if (runDir) {
+            cmd = `Push-Location -LiteralPath ${quoteString(runDir, shellType)}; ${cmd}; Pop-Location`;
+        }
+    } else if (shellType === 'cmd') {
+        cmd = `${quotedExe} ${quotedArgs}`;
+        if (runDir) {
+            cmd = `cd /d ${quoteString(runDir, shellType)} && ${cmd}`;
+        }
+    } else {
+        cmd = `${quotedExe} ${quotedArgs}`;
+        if (runDir) {
+            cmd = `(cd ${quoteString(runDir, shellType)} && ${cmd})`;
+        }
+    }
+
+    return cmd;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -104,7 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             const terminal = getTerminal('VS Preview');
             terminal.show();
-            terminal.sendText(`& ${psQuote(getPythonPath())} -m vspreview ${psQuote(file)}`);
+            terminal.sendText(buildCommand(getPythonPath(), ['-m', 'vspreview', file]));
         })
     );
 
@@ -116,7 +164,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             const terminal = getTerminal('VapourSynth');
             terminal.show();
-            terminal.sendText(`& ${psQuote(getPythonPath())} ${psQuote(file)}`);
+            terminal.sendText(buildCommand(getPythonPath(), [file]));
         })
     );
 
@@ -129,7 +177,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             const terminal = getTerminal('VS Info');
             terminal.show();
-            terminal.sendText(`& ${psQuote(getVspipePath())} -i ${psQuote(file)}`);
+            terminal.sendText(buildCommand(getVspipePath(), ['-i', file]));
         })
     );
 
@@ -143,7 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
             const fileDir = path.dirname(file);
             const terminal = getTerminal('VS Bench');
             terminal.show();
-            terminal.sendText(`Push-Location -LiteralPath ${psQuote(fileDir)}; & ${psQuote(getVspipePath())} -p ${psQuote(file)} .; Pop-Location`);
+            terminal.sendText(buildCommand(getVspipePath(), ['-p', file, '.'], fileDir));
         })
     );
 
