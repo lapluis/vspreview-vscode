@@ -174,9 +174,10 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
+            const fileDir = path.dirname(file);
             const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
-            terminal.sendText(buildCommand(getPythonPath(), ['-m', 'vspreview', file]));
+            terminal.sendText(buildCommand(getPythonPath(), ['-m', 'vspreview', file], fileDir));
         })
     );
 
@@ -186,9 +187,10 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured()) || !(await ensurePythonExists())) return;
 
+            const fileDir = path.dirname(file);
             const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
-            terminal.sendText(buildCommand(getPythonPath(), [file]));
+            terminal.sendText(buildCommand(getPythonPath(), [file], fileDir));
         })
     );
 
@@ -198,9 +200,10 @@ export function activate(context: vscode.ExtensionContext) {
             const file = getActiveVpyFile();
             if (!file || !(await ensureVspipeConfigured())) return;
 
+            const fileDir = path.dirname(file);
             const terminal = getTerminal(TERMINAL_NAME);
             terminal.show();
-            terminal.sendText(buildCommand(getVspipePath(), ['-i', file]));
+            terminal.sendText(buildCommand(getVspipePath(), ['-i', file], fileDir));
         })
     );
 
